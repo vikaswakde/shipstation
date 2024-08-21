@@ -1,24 +1,24 @@
 {
   "name": "start_shipping_landing_page_tool",
-  "description": "Generate a plan summary for the user to understand the requirements of the landing page and coordinate with the cto_tool to create the project for the user.",
+  "description": "Generate a comprehensive plan for creating a modern, high-converting landing page. This tool will outline the structure, design elements, and content strategy to effectively showcase the product or service.",
   "input_schema": {
     "type": "object",
     "properties": {
       "project_name": {
         "type": "string",
-        "description": "The name of the website/product for which the website needs to be created"
+        "description": "The name of the product, service, or campaign for which the landing page is being created"
       },
       "project_description": {
         "type": "string",
-        "description": "The description of the project that we want to create, this will be added to the readme file, as detailed as possible such as business category, use case, functionalities and all other relevant section which add value to the landing page"
+        "description": "A detailed description of the project, including its purpose, target audience, unique selling points, and any specific goals for the landing page (e.g., lead generation, product launch, event promotion)"
       },
       "sections": {
         "type": "string",
-        "description": "Base things needed to be shown on website like sections etc hero, testimonials, pricing section etc"
+        "description": "Key sections to be included on the landing page, such as hero section, features, benefits, testimonials, pricing, FAQ, call-to-action (CTA), etc. Specify any unique sections relevant to the project."
       },
       "design_style": {
         "type": "string",
-        "description": "The type of looks the user wants for their website like professional, minimal, sleek, playful, detailed etc"
+        "description": "The desired visual style and aesthetic for the landing page. Include preferences for color scheme, typography, imagery style (e.g., illustrations, photographs), and overall mood (e.g., professional, playful, minimalist, bold)."
       }
     },
     "required": [

@@ -1,24 +1,24 @@
 {
   "name": "start_shipping_portfolio_tool",
-  "description": "Generate a plan summary for the user to understand the requirements of the portfolio and coordinate with the cto_tool to create the project for the user",
+  "description": "Generate a comprehensive plan for creating a modern, professional portfolio website. This tool will outline the structure, design elements, and content strategy to effectively showcase the individual's skills, projects, and achievements.",
   "input_schema": {
     "type": "object",
     "properties": {
       "person_name": {
         "type": "string",
-        "description": "Name or alias of the person for whom we are going to create portfolio"
+        "description": "Full name or professional alias of the person for whom the portfolio is being created"
       },
       "portfolio_description": {
         "type": "string",
-        "description": "The description of the portfolio that we want to create, this will be added to the readme file, as detailed as possible such as domain of the person like tech, music, government, healthcare etc as in what nature of service does that person give."
+        "description": "A detailed description of the portfolio's purpose, including the individual's professional background, key skills, notable achievements, and target audience (e.g., potential employers, clients, collaborators)"
       },
       "sections": {
         "type": "string",
-        "description": "Things needed to be shown on website like skills, education, projects, online profiles etc"
+        "description": "Key sections to be included in the portfolio, such as About Me, Skills, Projects, Work Experience, Education, Testimonials, Contact Form, etc. Specify any unique sections relevant to the individual's field."
       },
       "design_style": {
         "type": "string",
-        "description": "The type of looks the user wants for their portfolio website like professional, minimal, playful etc"
+        "description": "The desired visual style and aesthetic for the portfolio. Include preferences for color scheme, typography, layout (e.g., single-page or multi-page), and overall mood (e.g., minimalist, creative, corporate, tech-focused)."
       }
     },
     "required": [
