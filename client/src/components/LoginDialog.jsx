@@ -12,19 +12,15 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, LogIn } from "lucide-react";
 import { toast } from "sonner";
-
 const LoginDialog = ({ isOpen, onClose, createAccount = false }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { handleLogin, isLoading, sendLoginLink, isSendingLoginLink } =
     useContext(AuthContext);
-
   const [isSigningUp, setIsSigningUp] = useState(createAccount);
-
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await handleLogin(email, password);
@@ -43,6 +39,7 @@ const LoginDialog = ({ isOpen, onClose, createAccount = false }) => {
 
   const handleLoginLink = async (e) => {
     e.preventDefault();
+    if (!email) return; // Prevent action if email is empty
     const result = await sendLoginLink(email);
     if (result.success) {
       toast.success("Login link sent successfully, check your email.");
@@ -52,7 +49,6 @@ const LoginDialog = ({ isOpen, onClose, createAccount = false }) => {
       });
     }
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -87,16 +83,17 @@ const LoginDialog = ({ isOpen, onClose, createAccount = false }) => {
           </div>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <Label htmlFor="password" className="text-foreground">Password</Label>
-              <Button
-                variant="link"
-                type="button"
-                size="sm"
-                onClick={handleLoginLink}
-                disabled={isSendingLoginLink}
+              <Label htmlFor="password">Password</Label>
+              <span
+                className={`text-sm ${
+                  email
+                    ? "text-gray-400 hover:text-white cursor-pointer"
+                    : "text-gray-600 cursor-not-allowed"
+                }`}
+                onClick={email ? handleLoginLink : undefined}
               >
                 {isSendingLoginLink ? "Sending..." : "Email me a login link!"}
-              </Button>
+              </span>
             </div>
             <Input
               id="password"
@@ -139,5 +136,4 @@ const LoginDialog = ({ isOpen, onClose, createAccount = false }) => {
     </Dialog>
   );
 };
-
 export default LoginDialog;

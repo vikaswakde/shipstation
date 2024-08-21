@@ -18,14 +18,12 @@ import {
 import { toast } from "sonner";
 import { pluralize } from "@/lib/utils";
 import { PROMPT_PLACEHOLDERS } from "@/constants";
-
 const ShipForm = ({ type, reset }) => {
   const [requirements, setRequirements] = useLocalStorage("requirements", "");
   const { sendMessage, socket } = useSocket();
   const [deployedWebsiteSlug, setDeployedWebsiteSlug] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isKeyValidating, setIsKeyValidating] = useState(false);
-
   const {
     isOpen: isLoaderOpen,
     onOpen: onLoaderOpen,
@@ -36,34 +34,34 @@ const ShipForm = ({ type, reset }) => {
     onOpen: onSuccessOpen,
     onClose: onSuccessClose,
   } = useDisclosure();
-  const { availableShips, anthropicKey, setAnthropicKey } =
+  const { availableShips, apiKey, setApiKey, provider, setProvider } =
     useContext(AuthContext);
 
   const startProject = () => {
     sendMessage("startProject", {
       shipType: "prompt",
-      apiKey: anthropicKey,
+      apiKey,
       message: requirements,
     });
     onClose();
     onLoaderOpen();
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!requirements.trim()) {
       toast.info("Easy there, what do you want to make?");
       return;
     }
-    if (availableShips <= 0) {
+    // TODO: change logic back to <= 0
+    if (availableShips >= 0) {
       onOpen();
     } else {
       startProject();
     }
   };
 
-  const handleSubmitAnthropicKey = (apiKey) => {
-    sendMessage("anthropicKey", { anthropicKey: apiKey });
+  const handleSubmitApiKey = (key, selectedProvider) => {
+    sendMessage("apiKey", { provider: selectedProvider, key });
     setIsKeyValidating(true);
   };
 
@@ -78,23 +76,19 @@ const ShipForm = ({ type, reset }) => {
           toast.error(response.message);
         }
       });
-
       socket.on("showPaymentOptions", ({ error }) => {
         onOpen();
       });
-
       socket.on("needMoreInfo", ({ message }) => {
         toast("Please add more details regarding the website");
         onLoaderClose();
       });
-
       socket.on("websiteDeployed", ({ slug }) => {
         onSuccessOpen();
         onLoaderClose();
         setRequirements("");
         setDeployedWebsiteSlug(slug);
       });
-
       return () => {
         socket.off("apiKeyStatus");
         socket.off("showPaymentOptions");
@@ -102,7 +96,7 @@ const ShipForm = ({ type, reset }) => {
         socket.off("needMoreInfo");
       };
     }
-  }, [socket, anthropicKey, requirements]);
+  }, [socket, apiKey, requirements]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -151,9 +145,11 @@ const ShipForm = ({ type, reset }) => {
       <ChoosePaymentOptionDialog
         isOpen={isOpen}
         onClose={onClose}
-        onSubmitKey={handleSubmitAnthropicKey}
-        anthropicKey={anthropicKey}
-        setAnthropicKey={setAnthropicKey}
+        onSubmitKey={handleSubmitApiKey}
+        apiKey={apiKey}
+        setApiKey={setApiKey}
+        provider={provider}
+        setProvider={setProvider}
         type={type}
         isKeyValidating={isKeyValidating}
       />
@@ -166,5 +162,4 @@ const ShipForm = ({ type, reset }) => {
     </div>
   );
 };
-
 export default ShipForm;

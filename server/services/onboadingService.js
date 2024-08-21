@@ -14,6 +14,7 @@ const {
   handleOnboardingToolUse,
 } = require("../controllers/onboardingToolController");
 const { AnthropicService } = require("../services/anthropicService");
+const { AIService, Providers } = require("../services/AIService");
 const { getUserProfile, insertMessage } = require("../services/dbService");
 const { SHIP_TYPES, DEFAULT_MESSAGES } = require("./constants");
 
@@ -30,12 +31,9 @@ async function processConversation({
     if (abortSignal.aborted) {
       throw new DOMException("Aborted", "AbortError");
     }
-
     let currentMessage;
-
     let messages = [];
     let tools = [];
-
     if (shipType) {
       if (shipType === SHIP_TYPES.PORTFOLIO) {
         tools.push(getDataForPortfolioTool);
@@ -55,7 +53,6 @@ async function processConversation({
         messages = [{ role: "user", content: message }];
       }
     }
-
     try {
       // insertMessage({
       //   chat_id: roomId,
@@ -89,7 +86,6 @@ async function processConversation({
       });
       break;
     }
-
     while (currentMessage.stop_reason === "tool_use") {
       const tool = currentMessage.content.find(
         (content) => content.type === "tool_use"
@@ -99,7 +95,6 @@ async function processConversation({
           role: currentMessage.role,
           content: currentMessage.content,
         });
-
         const toolResult = await handleOnboardingToolUse({
           tool,
           sendEvent,
@@ -109,12 +104,10 @@ async function processConversation({
           client,
         });
         messages.push({ role: "user", content: toolResult });
-
         if (tool.name === TOOLS.CTO) {
           console.log("Project creation completed");
           return;
         }
-
         currentMessage = await client.sendMessage({
           system:
             "Your task is to deploy a website for the user and share them the deployed url",
@@ -129,28 +122,27 @@ async function processConversation({
     }
   }
 }
-
 function handleOnboardingSocketEvents(io) {
   io.on("connection", (socket) => {
     console.log("New client connected");
     let abortController = new AbortController();
-
     socket.on("joinRoom", (roomId) => {
       socket.join(roomId);
       console.log(`User joined room: ${roomId}`);
     });
 
-    socket.on("anthropicKey", ({ anthropicKey: key }) => {
-      AnthropicService.validateKey(key).then((isValid) => {
+    socket.on("apiKey", ({ provider, key }) => {
+      AIService.validateKey(provider, key).then((isValid) => {
         if (isValid) {
-          console.log("Anthropic API key validated");
+          console.log(`${provider} API key validated`);
           socket.emit("apiKeyStatus", {
             success: true,
             message: "API key is valid, generating website!",
             key,
+            provider,
           });
         } else {
-          console.log("Invalid Anthropic API key provided");
+          console.log(`Invalid ${provider} API key provided`);
           socket.emit("apiKeyStatus", {
             success: false,
             message: "Invalid API key. Please try again.",
@@ -161,10 +153,9 @@ function handleOnboardingSocketEvents(io) {
 
     socket.on("startProject", async (data) => {
       console.log("startProject", data);
-      const { roomId, userId, apiKey, shipType, message } = data;
+      const { roomId, userId, apiKey, provider, shipType, message } = data;
       const clientParams = { userId };
       if (apiKey) {
-        // using own anthropic key
         clientParams.apiKey = apiKey;
       } else {
         const profile = await getUserProfile(userId);
@@ -179,12 +170,21 @@ function handleOnboardingSocketEvents(io) {
         }
       }
 
-      const client = new AnthropicService(clientParams);
+      let client;
+      if (provider === Providers.OPEN_AI) {
+        client = new AIService({
+          provider: Providers.OPEN_AI,
+          ...clientParams,
+          model: "gpt-4o-mini",
+        });
+      } else {
+        client = new AnthropicService(clientParams);
+      }
 
       const sendEvent = async (event, data) => {
         io.to(roomId).emit(event, data);
       };
-
+    
       abortController = new AbortController();
       try {
         await processConversation({
@@ -209,18 +209,15 @@ function handleOnboardingSocketEvents(io) {
         }
       }
     });
-
     socket.on("abortWebsiteCreation", () => {
       abortController.abort();
       console.log("Aborting website creation");
     });
-
     socket.on("disconnect", () => {
       console.log("Client disconnected");
     });
   });
 }
-
 module.exports = {
   handleOnboardingSocketEvents,
 };
